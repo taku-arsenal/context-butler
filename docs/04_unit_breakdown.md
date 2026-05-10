@@ -393,10 +393,11 @@ flowchart LR
 
   OUTPUT[出力\nSlack スレッド返信]
 
-  A2 -.->|Slack Thread API| SLACK[Slack]
+  A2 -.->|Slack Web API\nWorker経由| SLACK[Slack]
   A2 -.->|RAG 検索| KB[Bedrock KB]
-  A2 -.->|MCP| DRIVE[Google Drive]
-  A2 -.->|MCP| GITHUB[GitHub]
+  A2 -.->|MCP tools| MCPGW[AgentCore Gateway]
+  MCPGW -.-> DRIVE[Google Drive MCP]
+  MCPGW -.-> GITHUB[GitHub MCP]
 ```
 
 ---

@@ -22,58 +22,51 @@
 ## 2. 全体構成図
 
 ```mermaid
-flowchart TB
-  subgraph Slack["Slack Workspace"]
+flowchart LR
+  subgraph Slack["Slack Workspace\nPrivate channel only for MVP"]
     U[Slack User]
     MSG[Message Shortcut\n三点リーダから起動]
     REPLY[Thread Reply\n元投稿のスレッドに返信]
+    SLACKAPI[Slack Web API\nconversations.replies\nchat.postMessage]
   end
 
   subgraph AWS["AWS Cloud (ap-northeast-1)"]
-    subgraph Ingress["受信層"]
-      APIGW[API Gateway\nPOST /slack/interactivity]
-      ACK[Lambda: Ack\n署名検証・job作成\n3秒以内に200 OK]
-      SQS[SQS FIFO\n非同期化・重複排除\nDLQ付き]
+    subgraph Ingest["Ingest: Slack 3 sec ack"]
+      APIGW[Amazon API Gateway\nPOST /slack/interactivity]
+      ACK[AWS Lambda Ack\n署名検証\njob作成\n3秒以内に200 OK]
+      SQS[Amazon SQS FIFO\n非同期化\n重複排除\nDLQ]
     end
 
-    subgraph Processing["処理層"]
-      WORKER[Lambda Worker\nSlack API呼び出し\nAgent起動]
-      AGENT[AgentCore Runtime\nStrands Orchestrator\nA2Aなし]
+    subgraph WorkerLayer["Worker"]
+      WORKER[AWS Lambda Worker\nSlack API取得\nAgentCore起動\nSlack返信]
     end
 
-    subgraph Agents["4 Unit / 4 Agent"]
+    subgraph AgentRuntime["Amazon Bedrock AgentCore Runtime"]
+      ORCH[Strands Orchestrator\nA2Aなし\n4 Unitを順次制御]
       A1[Unit 1\n省略抽出 Agent]
       A2[Unit 2\n文脈取得 Agent]
       A3[Unit 3\n補足文生成 Agent]
       A4[Unit 4\nリテラシーレビュー Agent]
     end
 
-    subgraph Context["文脈取得層"]
-      THREAD[Slack Thread API\n対象メッセージ・スレッド]
-      SUMMARY[Channel Summary\nS3 / DynamoDB]
-      KB[Bedrock Knowledge Bases\n社内ナレッジ]
-      MCP[MCP Gateway\nDrive / GitHub のみ]
+    subgraph Knowledge["Knowledge & MCP Tools"]
+      KB[Amazon Bedrock Knowledge Bases\nデモ用社内ナレッジRAG]
+      S3KB[Amazon S3\nKBソース\nチャンネル要約\nデモ資料]
+      MCPGW[Amazon Bedrock AgentCore Gateway\nMCP tools endpoint]
     end
 
-    subgraph External["外部データソース"]
-      DRIVE[Google Drive\n議事録・仕様書・設計メモ]
-      GITHUB[GitHub\nIssue・PR・README・ADR]
+    subgraph StateSafety["State / Safety / Observability"]
+      DDB[Amazon DynamoDB\nexplain_jobs\nuser_profiles\nchannel_contexts\nfeedback]
+      GUARD[Amazon Bedrock Guardrails\n個人情報・機密情報\n不確かな断定を抑制]
+      CW[Amazon CloudWatch\nLogs / Metrics / Alarms]
     end
 
-    subgraph Data["データ層"]
-      DDB[DynamoDB\nexplain_jobs\nuser_profiles\nchannel_contexts\nfeedback]
-      S3[S3\nKB ソース・チャンネル要約\nログ・デモ資料]
-    end
+    BEDROCK[Amazon Bedrock Models\nHaiku / Sonnet / Nova]
+  end
 
-    subgraph AI["AI 基盤"]
-      BEDROCK[Amazon Bedrock\nClaude 3.5 Haiku / Sonnet\nAmazon Nova Lite / Pro]
-      GR[Bedrock Guardrails\n個人情報・機密情報\n攻撃的表現フィルタ]
-    end
-
-    subgraph Observability["監視層"]
-      CW[CloudWatch Logs\nLambda・Agent ログ]
-      ALARM[CloudWatch Alarms\nエラー・レイテンシ]
-    end
+  subgraph ExternalMCP["External MCP Servers"]
+    GHMCP[GitHub MCP\nIssue / PR / README / ADR]
+    GDMCP[Google Drive MCP\n議事録 / 仕様書 / 設計メモ]
   end
 
   U --> MSG
@@ -81,26 +74,43 @@ flowchart TB
   APIGW --> ACK
   ACK --> SQS
   SQS --> WORKER
-  WORKER --> AGENT
-  AGENT --> A1
-  A1 --> A2
-  A2 --> THREAD
-  A2 --> SUMMARY
-  A2 --> KB
-  A2 --> MCP
-  MCP --> DRIVE
-  MCP --> GITHUB
-  A2 --> A3
-  A3 --> A4
-  A4 -.->|任意| GR
-  A4 --> REPLY
 
-  AGENT --> DDB
-  AGENT --> CW
-  KB --> S3
-  SUMMARY --> S3
-  BEDROCK -.->|LLM推論| AGENT
+  WORKER -->|対象メッセージ・スレッド取得| SLACKAPI
+  SLACKAPI --> WORKER
+  WORKER --> ORCH
+
+  ORCH --> A1 --> A2 --> A3 --> A4
+  ORCH -.->|LLM推論| BEDROCK
+  A1 -.-> BEDROCK
+  A3 -.-> BEDROCK
+  A4 -.-> BEDROCK
+
+  A2 -->|Slack文脈はWorker経由| WORKER
+  A2 --> KB
+  S3KB --> KB
+  A2 --> MCPGW
+  MCPGW --> GHMCP
+  MCPGW --> GDMCP
+
+  ORCH --> DDB
+  A4 --> GUARD
+  ORCH --> CW
+  WORKER -->|最終補足文| SLACKAPI
+  SLACKAPI --> REPLY
 ```
+
+### 提供図からの修正点
+
+以前の図案は、AgentCore Runtime を中心に MCP や Guardrails を配置できている点は有用です。一方で、現在の最終方針とは以下が異なるため、この設計書では上記の形に修正します。
+
+| 提供図の要素 | 修正方針 | 理由 |
+|-------------|----------|------|
+| LINE Bot | 削除 | MVP は Slack のみに集中するため |
+| Slack MCP | 削除 | Slack 文脈取得は Slack Web API を直接使うため |
+| Speaker Literacy / Listener Literacy / Intent / Context などの 7 Agent 風分解 | 4 Unit / 4 Agent に統合 | AI-DLC の Unit 分解を「省略抽出、文脈取得、補足文生成、リテラシーレビュー」に絞るため |
+| Fact MCP / Doc Search Agent | Unit 2 文脈取得 Agent と AgentCore Gateway に統合 | 外部I/Oは文脈取得Agentに集約し、MCPはDrive/GitHub接続のみに限定するため |
+| Example Agent / streaming | 補足文生成 Agent に統合 | MVPではSlackスレッド返信を優先し、ストリーミング更新は将来拡張に回すため |
+| Users + Channels Store | DynamoDB の `user_profiles` / `channel_contexts` として表現 | 既存のデータ設計と一致させるため |
 
 ---
 
@@ -205,12 +215,14 @@ Orchestrator の制御フロー:
 - **MVP**: デモ用 Markdown 資料を S3 に配置し Knowledge Base 化
 - **検索対象**: プロジェクト概要・用語集・システム構成メモ・要件定義メモ・過去の意思決定メモ
 
-### 3.9 MCP Gateway（Drive / GitHub）
+### 3.9 AgentCore Gateway（MCP tools endpoint）
 
 - **用途**: 外部データソースへの接続
 - **対象**: Google Drive・GitHub のみ
 - **MVP**: モックまたは最低限の実装でも可
 - **本番**: OAuth 管理・権限管理が必要
+- **使わないもの**: Slack MCP は使わない。Slack の対象メッセージ・スレッド取得・返信は Slack Web API を直接利用する。
+- **呼び出し元**: Unit 2（文脈取得 Agent）が、Unit 1 の `recommended_retrieval_plan` に基づいて必要な場合のみ呼び出す。
 
 ### 3.10 DynamoDB
 
@@ -257,6 +269,11 @@ sequenceDiagram
   participant Worker as Lambda Worker
   participant Orchestrator as Strands Orchestrator
   participant Bedrock as Amazon Bedrock
+  participant KB as Bedrock Knowledge Bases
+  participant MCP as AgentCore Gateway (MCP)
+  participant GitHub as GitHub MCP
+  participant Drive as Google Drive MCP
+  participant Guardrails as Bedrock Guardrails
   participant DDB as DynamoDB
 
   User->>Slack: 三点リーダ → Explain with 説明補足AI
@@ -276,7 +293,15 @@ sequenceDiagram
   Worker->>Orchestrator: 起動
   Orchestrator->>Bedrock: Unit 1 省略抽出
   Bedrock-->>Orchestrator: 省略点 JSON
-  Orchestrator->>Bedrock: Unit 2 文脈取得
+  Orchestrator->>Bedrock: Unit 2 文脈取得方針判断
+  Orchestrator->>KB: デモ用KB検索
+  KB-->>Orchestrator: KB検索結果
+  Orchestrator->>MCP: 必要時のみ外部文脈取得
+  MCP->>GitHub: Issue / PR / README 検索
+  MCP->>Drive: 議事録 / 仕様書検索
+  GitHub-->>MCP: GitHub文脈
+  Drive-->>MCP: Drive文脈
+  MCP-->>Orchestrator: 外部文脈
   Bedrock-->>Orchestrator: 文脈 JSON
   Worker->>DDB: job 更新 (GENERATING)
   Orchestrator->>Bedrock: Unit 3 補足文生成
@@ -284,6 +309,8 @@ sequenceDiagram
   Worker->>DDB: job 更新 (REVIEWING)
   Orchestrator->>Bedrock: Unit 4 リテラシーレビュー
   Bedrock-->>Orchestrator: 最終補足文
+  Orchestrator->>Guardrails: 出力安全性チェック（任意）
+  Guardrails-->>Orchestrator: チェック結果
 
   Orchestrator-->>Worker: 最終補足文
   Worker->>Slack: chat.postMessage (スレッド返信)

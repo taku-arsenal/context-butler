@@ -255,7 +255,7 @@ GitHub: https://github.com/taku-arsenal/context-butler
 | 質問 | 回答 |
 |------|------|
 | 「A2A は使っていないのか？」 | 「MVP では Strands Orchestrator 内部で 4 Agent を制御しています。将来的に Agent を外部サービス化・共通化する段階で A2A を採用します。これは複雑性を抑えた設計判断です。」 |
-| 「Slack MCP は使わないのか？」 | 「Slack 文脈取得は Slack API を直接使います。MCP は Drive / GitHub の外部データソース接続のみに限定しています。」 |
+| 「Slack MCP は使わないのか？」 | 「Slack 文脈取得は Slack API を直接使います。MCP は AgentCore Gateway 経由で Drive / GitHub の外部データソース接続に限定しています。」 |
 | 「事実誤認のリスクは？」 | 「Unit 4 のリテラシーレビュー Agent が事実と推測を分離します。不明点は『この投稿だけでは明記されていません』と明示します。」 |
 | 「機密情報が漏れるリスクは？」 | 「Bedrock Guardrails で個人情報・機密情報をフィルタリングします。Drive / GitHub から取得した情報は要約・抽象化して使用します。」 |
 | 「LINE や Teams には対応しないのか？」 | 「MVP では Slack に集中します。将来的には LINE WORKS・Teams への対応も検討しています。」 |
