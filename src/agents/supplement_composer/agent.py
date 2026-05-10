@@ -1,5 +1,5 @@
 """
-Unit 3: 補足文生成 Agent
+Stage 3: 補足文生成 Agent
 対象投稿に対する補足説明を生成する。
 """
 import json
@@ -21,12 +21,12 @@ def run(
     model_id: str,
 ) -> str:
     """
-    Unit 3: 補足文生成 Agent を実行する。
+    Stage 3: 補足文生成 Agent を実行する。
 
     Args:
         target_message: 対象 Slack メッセージ
-        omission_result: Unit 1 の出力
-        retrieved_context: Unit 2 の出力
+        omission_result: Stage 1 の出力
+        retrieved_context: Stage 2 の出力
         reader_profile: 読み手のリテラシー設定
         model_id: 使用する Bedrock モデル ID
 

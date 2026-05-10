@@ -103,7 +103,7 @@ Unit of Work D: データ永続化・安全性・評価
 |------|-------|------|
 | A | Slack Message Shortcut、3秒ack、SQS、Worker、スレッド返信 | Slack App・API Gateway・Lambda・SQS |
 | B | 省略抽出、文脈取得方針、補足文生成、リテラシーレビュー | AgentCore Runtime・Strands Orchestrator・プロンプト |
-| C | Bedrock Knowledge Bases、Google Drive MCP、GitHub MCP | RAG・AgentCore Gateway・MCP接続 |
+| C | Bedrock Knowledge Bases、Google Drive MCP、GitHub MCP（MVPで実装を目指し、難しい場合はFuture） | RAG・AgentCore Gateway・MCP接続 |
 | D | job履歴、Privateチャンネル前提の権限制御、Guardrails、テストデータ評価 | DynamoDB・S3・評価観点・安全性設計 |
 
 ![AI-DLC Unit of Work](docs/images/context-butler-aidlc-unit-of-work.png)
@@ -181,8 +181,20 @@ flowchart LR
 ```
 .
 ├── README.md
+├── aidlc-state.md               # AI-DLC Inception フェーズ完了状態（概要）
+├── aidlc-docs/                  # AI-DLC Inception 成果物（書類審査提出用）
+│   ├── 01_intent.md             # Business Intent・テーマ接続・対象ユーザー・MVP 仮説
+│   ├── 02_requirements_analysis.md  # 機能要件・非機能要件・制約・MVP/Future 切り分け
+│   ├── 03_user_stories.md       # Persona 別 user story・acceptance criteria・優先度
+│   ├── 04_unit_of_work_plan.md  # AI-DLC Unit of Work 定義（Unit A〜D）
+│   ├── 05_application_design.md # AWS 構成・シーケンス・MCP 利用範囲・セキュリティ
+│   ├── 06_prfaq.md              # PRFAQ 形式のプロダクト説明
+│   ├── 07_nfrs.md               # レイテンシ・可用性・セキュリティ・コスト等の NFR
+│   ├── 08_risks.md              # リスク一覧と mitigation
+│   ├── 09_measurement_criteria.md  # 成功指標・定性評価・定量評価
+│   └── 10_suggested_bolts.md   # Construction タスク分解（Unit 別 Issue 粒度）
 ├── docs/
-│   ├── 01_inception.md          # AI-DLC Inception（書類審査の核心）
+│   ├── 01_inception.md          # AI-DLC Inception（詳細版）
 │   ├── 02_requirements.md       # 要件定義
 │   ├── 03_architecture.md       # AWS アーキテクチャ・構成図
 │   ├── 04_unit_breakdown.md     # AI-DLC Unit of Work 分解
@@ -223,12 +235,20 @@ flowchart LR
 
 ---
 
+## AI-DLC Inception 成果物
+
+書類審査向けの AI-DLC Inception 成果物は `aidlc-docs/` にまとめています。
+
+| ドキュメント | 内容 |
+|------------|------|
+| [aidlc-state.md](aidlc-state.md) | Inception フェーズ完了状態・主要 Unit・次のステップ |
+| [01_intent.md](aidlc-docs/01_intent.md) | Business Intent・テーマ接続・対象ユーザー・MVP 仮説 |
+| [04_unit_of_work_plan.md](aidlc-docs/04_unit_of_work_plan.md) | AI-DLC Unit of Work 定義（Unit A〜D） |
+| [05_application_design.md](aidlc-docs/05_application_design.md) | AWS 構成・シーケンス・MCP 利用範囲 |
+| [08_risks.md](aidlc-docs/08_risks.md) | リスク一覧と mitigation |
+
 ## 参考資料
 
-- [AI-DLC Inception ドキュメント](docs/01_inception.md)
-- [AWS アーキテクチャ](docs/03_architecture.md)
-- [AI-DLC Unit of Work 分解](docs/04_unit_breakdown.md)
-- [MVP スコープ](docs/05_mvp_scope.md)
 - [Amazon Bedrock AgentCore](https://aws.amazon.com/bedrock/agentcore/)
 - [Strands Agents](https://strandsagents.com/)
 - [Slack API - Message Shortcuts](https://api.slack.com/interactivity/shortcuts/using)

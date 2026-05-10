@@ -40,8 +40,8 @@
 | F-20 | Slack スレッド履歴を取得できる | Must |
 | F-21 | チャンネル履歴要約を利用できる | Should |
 | F-22 | Bedrock Knowledge Bases からデモ用社内ナレッジを検索できる | Must |
-| F-23 | Google Drive MCP から議事録・仕様書を取得できる | Could |
-| F-24 | GitHub MCP から Issue・PR・README を取得できる | Could |
+| F-23 | Google Drive MCP から議事録・仕様書を取得できる | MVP Target / Future |
+| F-24 | GitHub MCP から Issue・PR・README を取得できる | MVP Target / Future |
 | F-25 | 必要な情報源のみ参照する（全件検索しない） | Must |
 
 ### 1.4 データ管理

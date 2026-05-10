@@ -1,5 +1,5 @@
 """
-Unit 1: 省略抽出 Agent
+Stage 1: 省略抽出 Agent
 対象 Slack 投稿から省略・暗黙知・不足情報を抽出する。
 """
 import json
@@ -19,7 +19,9 @@ PROMPT_FILE = Path(__file__).parent.parent.parent.parent / "prompts" / "omission
 
 def load_system_prompt() -> str:
     """プロンプトファイルからシステムプロンプトを読み込む"""
-    # TODO: プロンプトファイルからシステムプロンプトを抽出する
+    if PROMPT_FILE.exists():
+        return PROMPT_FILE.read_text(encoding="utf-8")
+
     return """あなたは Slack 投稿の「省略・暗黙知・不足情報」を抽出する専門 AI です。
 
 対象 Slack メッセージを読み、以下を抽出してください：
@@ -49,7 +51,7 @@ def load_system_prompt() -> str:
 
 def run(target_message: str, thread_text: str, model_id: str) -> dict:
     """
-    Unit 1: 省略抽出 Agent を実行する。
+    Stage 1: 省略抽出 Agent を実行する。
 
     Args:
         target_message: 対象 Slack メッセージ
@@ -102,7 +104,7 @@ def run(target_message: str, thread_text: str, model_id: str) -> dict:
 
         return json.loads(result_text)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Unit 1 output as JSON: {e}")
+        logger.error(f"Failed to parse Stage 1 output as JSON: {e}")
         # フォールバック
         return {
             "message_intent": "不明",

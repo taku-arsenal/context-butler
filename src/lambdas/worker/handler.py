@@ -89,8 +89,7 @@ def handler(event: dict, context) -> None:
                 job_data["slack_thread_ts"],
             )
 
-            # Orchestrator の起動（スケルトン）
-            # TODO: AgentCore Runtime + Strands Orchestrator を実装する
+            # Orchestrator の起動。AgentCore Runtime 化しても入出力契約は維持する。
             update_job_status(job_id, "GENERATING")
 
             from src.agents.orchestrator.orchestrator import run_orchestrator

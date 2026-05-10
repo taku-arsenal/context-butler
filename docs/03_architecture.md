@@ -8,7 +8,7 @@
 
 ## 1. アーキテクチャ概要
 
-本アプリは、Slack の Message Shortcut を起点に、非同期処理で AgentCore Runtime 上の Strands Orchestrator を実行し、元投稿のスレッドに補足文を返信する構成です。
+本アプリは、Slack の Message Shortcut を起点に、非同期処理で 4 つの Agent ステージを順次実行し、元投稿のスレッドに補足文を返信する構成です。MVP では AgentCore Runtime + Strands Orchestrator の利用を第一候補にします。
 
 ### 設計原則
 
@@ -189,7 +189,7 @@ flowchart LR
 - **役割**: 4 つの Agent ステージを順次制御する
 - **A2A**: MVP では使わない（将来拡張として設計）
 - **実行モード**: 同期実行（Worker Lambda 内で完結）
-- **MVP 方針**: AgentCore Runtime を予選 MVP から利用する。設定やデプロイで予選直前に詰まる場合のみ、同じ Agent 入出力契約を保った Bedrock 直接呼び出しで継続する。
+- **MVP 方針**: AgentCore Runtime を予選 MVP から利用することを第一候補にする。設定やデプロイで予選直前に詰まる場合のみ、同じ Agent 入出力契約を保った Bedrock 直接呼び出しで継続し、予選後にAgentCoreへ戻す。
 
 ```
 Orchestrator の制御フロー:
@@ -412,7 +412,7 @@ A2A を使うと以下のコストが増えます：
 | S3 | KB ソース・ログ | Must | Must |
 | Bedrock (LLM) | AI 推論 | Must | Must |
 | Bedrock Knowledge Bases | 社内ナレッジ RAG | Must | Must |
-| Bedrock AgentCore Runtime | Agent ホスティング | Must（第一候補） | Must |
+| Bedrock AgentCore Runtime | Agent ホスティング | MVP Target（第一候補） | Must |
 | Bedrock Guardrails | 出力フィルタリング | Should | Must |
 | CloudWatch | ログ・監視 | Must | Must |
 | IAM | 権限管理 | Must | Must |

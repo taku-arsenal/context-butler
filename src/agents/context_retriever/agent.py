@@ -1,5 +1,5 @@
 """
-Unit 2: 文脈取得 Agent
+Stage 2: 文脈取得 Agent
 省略抽出結果に基づき、補足文生成に必要な文脈を収集・整理する。
 """
 import json
@@ -50,10 +50,10 @@ def run(
     model_id: str,
 ) -> dict:
     """
-    Unit 2: 文脈取得 Agent を実行する。
+    Stage 2: 文脈取得 Agent を実行する。
 
     Args:
-        omission_result: Unit 1 の出力
+        omission_result: Stage 1 の出力
         target_message: 対象 Slack メッセージ
         thread_text: スレッド履歴テキスト
         channel_id: チャンネル ID
@@ -80,13 +80,13 @@ def run(
         else:
             missing_context.append("Knowledge Base から関連情報が見つかりませんでした")
 
-    # TODO: GitHub MCP の実装
+    # GitHub MCP はMVPで実装を目指し、難しい場合はFutureとして扱う。
     if "github" in retrieval_plan:
-        missing_context.append("GitHub 検索は現在未実装です（将来対応）")
+        missing_context.append("GitHub 検索はMVPで実装を目指し、難しい場合はFutureとして扱います")
 
-    # TODO: Google Drive MCP の実装
+    # Google Drive MCP はMVPで実装を目指し、難しい場合はFutureとして扱う。
     if "drive" in retrieval_plan:
-        missing_context.append("Google Drive 検索は現在未実装です（将来対応）")
+        missing_context.append("Google Drive 検索はMVPで実装を目指し、難しい場合はFutureとして扱います")
 
     # Bedrock で文脈を整理する
     system_prompt = """あなたは Slack 投稿の補足に必要な文脈を整理する専門 AI です。
@@ -142,7 +142,7 @@ def run(
 
         return json.loads(result_text)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Unit 2 output as JSON: {e}")
+        logger.error(f"Failed to parse Stage 2 output as JSON: {e}")
         return {
             "retrieved_context": retrieved_context,
             "confidence": 0.5,

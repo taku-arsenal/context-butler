@@ -76,7 +76,7 @@ flowchart TB
 
 ### スコープ
 
-- AgentCore Runtime 上での Strands Orchestrator 実行
+- AgentCore Runtime + Strands Orchestrator の利用を第一候補とした 4 Agent ステージ制御
 - 省略抽出 Agent
 - 文脈取得 Agent
 - 補足文生成 Agent
@@ -102,7 +102,7 @@ flowchart LR
 - 事実と推測を分離できる
 - 不明点を不明として表現できる
 - Slackに投稿して自然な長さ・文体に整えられる
-- AgentCore Runtime の利用を第一候補にし、詰まった場合も同じ入出力契約で Bedrock 直接呼び出しへ退避できる
+- AgentCore Runtime の利用を第一候補にし、詰まった場合も同じ入出力契約で Bedrock 直接呼び出しへ一時退避できる
 
 ### 依存関係
 
@@ -164,7 +164,7 @@ flowchart LR
 | 定性 | 審査員・デモ参加者が補足文を読んで投稿意図を理解できる | 肯定的評価を得る |
 | 定性 | 「雑な投稿でも伝わってしまう」というテーマ性が伝わる | プレゼンで説明できる |
 | 定量 | 想定補足ポイント充足率 | 80%以上 |
-| 定量 | 補足生成完了時間 | 30秒以内を目標 |
+| 定量 | 補足生成完了時間 | 30 秒以内を目標 |
 | 定量 | job 処理成功率 | 95%以上を目標 |
 
 ---

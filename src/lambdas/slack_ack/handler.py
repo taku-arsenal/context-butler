@@ -31,8 +31,22 @@ def verify_slack_signature(body: str, timestamp: str, signature: str) -> bool:
     Slack の署名を検証する。
     タイミング攻撃対策のため hmac.compare_digest を使用。
     """
+    if not SLACK_SIGNING_SECRET:
+        logger.error("SLACK_SIGNING_SECRET is not configured")
+        return False
+
+    if not timestamp or not signature:
+        logger.warning("Missing Slack signature headers")
+        return False
+
+    try:
+        request_ts = int(timestamp)
+    except ValueError:
+        logger.warning("Invalid Slack request timestamp")
+        return False
+
     # タイムスタンプが 5 分以上古い場合はリジェクト（リプレイ攻撃対策）
-    if abs(time.time() - int(timestamp)) > 60 * 5:
+    if abs(time.time() - request_ts) > 60 * 5:
         logger.warning("Slack request timestamp is too old")
         return False
 
@@ -147,5 +161,4 @@ def handler(event: dict, context) -> dict:
 
     except Exception as e:
         logger.error(f"Error in ack handler: {e}", exc_info=True)
-        # エラーでも 200 を返す（Slack の再送を防ぐ）
-        return {"statusCode": 200, "body": ""}
+        return {"statusCode": 500, "body": "Internal Server Error"}

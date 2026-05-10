@@ -1,5 +1,5 @@
 """
-Unit 4: リテラシーレビュー Agent
+Stage 4: リテラシーレビュー Agent
 補足文の品質・安全性を確認し、最終文を出力する。
 """
 import json
@@ -22,13 +22,13 @@ def run(
     model_id: str,
 ) -> dict:
     """
-    Unit 4: リテラシーレビュー Agent を実行する。
+    Stage 4: リテラシーレビュー Agent を実行する。
 
     Args:
-        draft_message: Unit 3 の出力（補足文ドラフト）
+        draft_message: Stage 3 の出力（補足文ドラフト）
         target_message: 対象 Slack メッセージ
-        omission_result: Unit 1 の出力
-        retrieved_context: Unit 2 の出力
+        omission_result: Stage 1 の出力
+        retrieved_context: Stage 2 の出力
         reader_profile: 読み手のリテラシー設定
         model_id: 使用する Bedrock モデル ID
 
@@ -121,7 +121,7 @@ def run(
 
         return json.loads(result_text)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Unit 4 output as JSON: {e}")
+        logger.error(f"Failed to parse Stage 4 output as JSON: {e}")
         # フォールバック: ドラフトをそのまま返す
         return {
             "approved": True,

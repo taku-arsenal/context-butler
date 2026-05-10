@@ -34,6 +34,13 @@ venv.bak/
 infra/cdk/cdk.out/
 infra/cdk/node_modules/
 infra/cdk/.cdk.staging/
+cdk.context.json
+
+# AWS SAM / Terraform / deployment artifacts
+.aws-sam/
+*.tfstate
+*.tfstate.*
+*.zip
 
 # IDE
 .vscode/settings.json
@@ -82,8 +89,19 @@ AWS-Summit-Japan-2026-Hackathon*.pdf
 AWS_Summit_Japan_2026_Hackathon_参加規約.pdf
 AI-Driven Development Lifecycle.pdf
 
-# Local/generated diagram workspace
+# Internal/demo and local generated workspaces
+demo/
 generated-diagrams/
+.uv-cache/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
 
 # Logs
 *.log

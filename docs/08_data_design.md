@@ -45,7 +45,7 @@
 | `error_message` | String | - | エラーメッセージ |
 | `created_at` | String | ✅ | ISO 8601 形式 |
 | `updated_at` | String | ✅ | ISO 8601 形式 |
-| `ttl` | Number | ✅ | Unix タイムスタンプ（30 日後） |
+| `ttl` | Number | ✅ | TTL 用 Unix タイムスタンプ（30 日後） |
 
 #### status の値
 

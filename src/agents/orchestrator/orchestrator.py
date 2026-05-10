@@ -43,7 +43,7 @@ def run_orchestrator(
     reader_profile: Optional[dict] = None,
 ) -> dict:
     """
-    4 Unit の Agent を順次実行する。
+    4 つの Agent ステージを順次実行する。
 
     Args:
         job_id: ジョブ ID
@@ -66,18 +66,18 @@ def run_orchestrator(
         for msg in thread_messages[:10]  # 最大 10 件
     ])
 
-    # Unit 1: 省略抽出 Agent
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT1_START"}))
+    # Stage 1: 省略抽出 Agent
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE1_START"}))
     from src.agents.omission_extractor.agent import run as run_unit1
     omission_result = run_unit1(
         target_message=target_message,
         thread_text=thread_text,
         model_id=MODEL_HAIKU,
     )
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT1_DONE"}))
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE1_DONE"}))
 
-    # Unit 2: 文脈取得 Agent
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT2_START"}))
+    # Stage 2: 文脈取得 Agent
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE2_START"}))
     from src.agents.context_retriever.agent import run as run_unit2
     retrieved_context = run_unit2(
         omission_result=omission_result,
@@ -86,10 +86,10 @@ def run_orchestrator(
         channel_id=channel_id,
         model_id=MODEL_HAIKU,
     )
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT2_DONE"}))
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE2_DONE"}))
 
-    # Unit 3: 補足文生成 Agent
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT3_START"}))
+    # Stage 3: 補足文生成 Agent
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE3_START"}))
     from src.agents.supplement_composer.agent import run as run_unit3
     draft_message = run_unit3(
         target_message=target_message,
@@ -98,10 +98,10 @@ def run_orchestrator(
         reader_profile=reader_profile,
         model_id=MODEL_SONNET,
     )
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT3_DONE"}))
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE3_DONE"}))
 
-    # Unit 4: リテラシーレビュー Agent
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT4_START"}))
+    # Stage 4: リテラシーレビュー Agent
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE4_START"}))
     from src.agents.literacy_reviewer.agent import run as run_unit4
     review_result = run_unit4(
         draft_message=draft_message,
@@ -111,7 +111,7 @@ def run_orchestrator(
         reader_profile=reader_profile,
         model_id=MODEL_SONNET,
     )
-    logger.info(json.dumps({"job_id": job_id, "event": "UNIT4_DONE"}))
+    logger.info(json.dumps({"job_id": job_id, "event": "STAGE4_DONE"}))
 
     logger.info(json.dumps({"job_id": job_id, "event": "ORCHESTRATOR_DONE"}))
 
