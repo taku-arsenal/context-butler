@@ -1,0 +1,89 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# AWS CDK
+infra/cdk/cdk.out/
+infra/cdk/node_modules/
+infra/cdk/.cdk.staging/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (絶対にコミットしない)
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+*.secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+id_rsa*
+id_ed25519*
+credentials
+.credentials
+.aws/
+aws/credentials
+aws/config
+secrets/
+secret/
+tokens/
+token.json
+oauth*.json
+client_secret*.json
+service-account*.json
+service_account*.json
+
+# Reference materials not for public GitHub
+AWS_Summit_Japan_2026_Hackathon_参加規約.pdf
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
