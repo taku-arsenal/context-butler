@@ -8,18 +8,24 @@
 
 ## 1. アーキテクチャ概要
 
-本アプリは、Slack の Message Shortcut を起点に、非同期処理で 4 Unit の AI Agent を実行し、元投稿のスレッドに補足文を返信する構成です。
+本アプリは、Slack の Message Shortcut を起点に、非同期処理で AgentCore Runtime 上の Strands Orchestrator を実行し、元投稿のスレッドに補足文を返信する構成です。
 
 ### 設計原則
 
 1. **Slack の 3 秒制約に対応する**: API Gateway + Lambda Ack + SQS FIFO による非同期化
 2. **AI 処理を単一 Orchestrator で制御する**: MVP から AgentCore Runtime + Strands Orchestrator の利用を第一候補にする
 3. **外部データ取得を限定する**: MCP は Drive / GitHub のみ。Slack は直接 API
-4. **MVP では複雑性を抑える**: A2A は使わない。4 Agent を Orchestrator 内部で制御
+4. **MVP では複雑性を抑える**: A2A は使わない。4つの Agent ステージを Orchestrator 内部で制御
 
 ---
 
 ## 2. 全体構成図
+
+以下は `awslabs.aws-diagram-mcp-server` で生成した AWS + MCP 構成図です。Slack は Web API で直接扱い、MCP は Google Drive / GitHub の外部文脈取得に限定します。
+
+![Context Butler AWS MCP Architecture](images/context-butler-aws-mcp-architecture.png)
+
+以下の Mermaid は、差分レビューや軽微な修正をしやすくするための編集用表現です。
 
 ```mermaid
 flowchart LR
@@ -42,11 +48,11 @@ flowchart LR
     end
 
     subgraph AgentRuntime["Amazon Bedrock AgentCore Runtime"]
-      ORCH[Strands Orchestrator\nA2Aなし\n4 Unitを順次制御]
-      A1[Unit 1\n省略抽出 Agent]
-      A2[Unit 2\n文脈取得 Agent]
-      A3[Unit 3\n補足文生成 Agent]
-      A4[Unit 4\nリテラシーレビュー Agent]
+      ORCH[Strands Orchestrator\nA2Aなし\n4 Agentステージを順次制御]
+      A1[Stage 1\n省略抽出 Agent]
+      A2[Stage 2\n文脈取得 Agent]
+      A3[Stage 3\n補足文生成 Agent]
+      A4[Stage 4\nリテラシーレビュー Agent]
     end
 
     subgraph Knowledge["Knowledge & MCP Tools"]
@@ -107,8 +113,8 @@ flowchart LR
 |-------------|----------|------|
 | LINE Bot | 削除 | MVP は Slack のみに集中するため |
 | Slack MCP | 削除 | Slack 文脈取得は Slack Web API を直接使うため |
-| Speaker Literacy / Listener Literacy / Intent / Context などの 7 Agent 風分解 | 4 Unit / 4 Agent に統合 | AI-DLC の Unit 分解を「省略抽出、文脈取得、補足文生成、リテラシーレビュー」に絞るため |
-| Fact MCP / Doc Search Agent | Unit 2 文脈取得 Agent と AgentCore Gateway に統合 | 外部I/Oは文脈取得Agentに集約し、MCPはDrive/GitHub接続のみに限定するため |
+| Speaker Literacy / Listener Literacy / Intent / Context などの 7 Agent 風分解 | 4 Agentステージに統合 | 実行時のAI処理を「省略抽出、文脈取得、補足文生成、リテラシーレビュー」に絞るため |
+| Fact MCP / Doc Search Agent | 文脈取得 Agent と AgentCore Gateway に統合 | 外部I/Oは文脈取得Agentに集約し、MCPはDrive/GitHub接続のみに限定するため |
 | Example Agent / streaming | 補足文生成 Agent に統合 | MVPではSlackスレッド返信を優先し、ストリーミング更新は将来拡張に回すため |
 | Users + Channels Store | DynamoDB の `user_profiles` / `channel_contexts` として表現 | 既存のデータ設計と一致させるため |
 
@@ -180,33 +186,33 @@ flowchart LR
 
 ### 3.6 AgentCore Runtime + Strands Orchestrator
 
-- **役割**: 4 つの専門 Agent を順次制御する
+- **役割**: 4 つの Agent ステージを順次制御する
 - **A2A**: MVP では使わない（将来拡張として設計）
 - **実行モード**: 同期実行（Worker Lambda 内で完結）
-- **MVP 方針**: AgentCore Runtime を予選 MVP から利用する。設定やデプロイで予選直前に詰まる場合のみ、同じ 4 Unit の入出力契約を保った Bedrock 直接呼び出しでデモを継続する。
+- **MVP 方針**: AgentCore Runtime を予選 MVP から利用する。設定やデプロイで予選直前に詰まる場合のみ、同じ Agent 入出力契約を保った Bedrock 直接呼び出しで継続する。
 
 ```
 Orchestrator の制御フロー:
-  1. Unit 1（省略抽出 Agent）を実行
-  2. Unit 1 の出力を Unit 2（文脈取得 Agent）に渡す
-  3. Unit 2 の出力を Unit 3（補足文生成 Agent）に渡す
-  4. Unit 3 の出力を Unit 4（リテラシーレビュー Agent）に渡す
-  5. Unit 4 の最終出力を返す
+  1. Stage 1（省略抽出 Agent）を実行
+  2. Stage 1 の出力を Stage 2（文脈取得 Agent）に渡す
+  3. Stage 2 の出力を Stage 3（補足文生成 Agent）に渡す
+  4. Stage 3 の出力を Stage 4（リテラシーレビュー Agent）に渡す
+  5. Stage 4 の最終出力を返す
 ```
 
 ### 3.7 Amazon Bedrock
 
 | 用途 | モデル候補 |
 |------|-----------|
-| Unit 1（省略抽出）| Claude 3.5 Haiku / Amazon Nova Lite（軽量・高速） |
-| Unit 2（文脈取得）| Claude 3.5 Haiku / Amazon Nova Lite（軽量・高速） |
-| Unit 3（補足文生成）| Claude 3.5 Sonnet / Amazon Nova Pro（高品質・日本語） |
-| Unit 4（リテラシーレビュー）| Claude 3.5 Sonnet / Amazon Nova Pro（高品質・日本語） |
+| 省略抽出 Agent | Claude 3.5 Haiku / Amazon Nova Lite（軽量・高速） |
+| 文脈取得 Agent | Claude 3.5 Haiku / Amazon Nova Lite（軽量・高速） |
+| 補足文生成 Agent | Claude 3.5 Sonnet / Amazon Nova Pro（高品質・日本語） |
+| リテラシーレビュー Agent | Claude 3.5 Sonnet / Amazon Nova Pro（高品質・日本語） |
 
 **選定方針**:
 - 日本語の説明生成品質を重視
-- 軽い Agent（Unit 1・2）は Haiku / Nova Lite で高速化
-- 最終生成・レビュー（Unit 3・4）は Sonnet / Nova Pro で品質確保
+- 軽い Agent（省略抽出・文脈取得）は Haiku / Nova Lite で高速化
+- 最終生成・レビューは Sonnet / Nova Pro で品質確保
 - 具体的なモデルはリージョン・費用・利用可否に応じて選定
 
 ### 3.8 Bedrock Knowledge Bases
@@ -222,7 +228,7 @@ Orchestrator の制御フロー:
 - **MVP**: モックまたは最低限の実装でも可
 - **本番**: OAuth 管理・権限管理が必要
 - **使わないもの**: Slack MCP は使わない。Slack の対象メッセージ・スレッド取得・返信は Slack Web API を直接利用する。
-- **呼び出し元**: Unit 2（文脈取得 Agent）が、Unit 1 の `recommended_retrieval_plan` に基づいて必要な場合のみ呼び出す。
+- **呼び出し元**: 文脈取得 Agent が、省略抽出 Agent の `recommended_retrieval_plan` に基づいて必要な場合のみ呼び出す。
 
 ### 3.10 DynamoDB
 
@@ -290,9 +296,9 @@ sequenceDiagram
   Slack-->>Worker: スレッド履歴
 
   Worker->>Orchestrator: 起動
-  Orchestrator->>Bedrock: Unit 1 省略抽出
+  Orchestrator->>Bedrock: Stage 1 省略抽出
   Bedrock-->>Orchestrator: 省略点 JSON
-  Orchestrator->>Bedrock: Unit 2 文脈取得方針判断
+  Orchestrator->>Bedrock: Stage 2 文脈取得方針判断
   Orchestrator->>KB: 社内ナレッジKB検索
   KB-->>Orchestrator: KB検索結果
   Orchestrator->>MCP: 必要時のみ外部文脈取得
@@ -303,10 +309,10 @@ sequenceDiagram
   MCP-->>Orchestrator: 外部文脈
   Bedrock-->>Orchestrator: 文脈 JSON
   Worker->>DDB: job 更新 (GENERATING)
-  Orchestrator->>Bedrock: Unit 3 補足文生成
+  Orchestrator->>Bedrock: Stage 3 補足文生成
   Bedrock-->>Orchestrator: 補足文ドラフト
   Worker->>DDB: job 更新 (REVIEWING)
-  Orchestrator->>Bedrock: Unit 4 リテラシーレビュー
+  Orchestrator->>Bedrock: Stage 4 リテラシーレビュー
   Bedrock-->>Orchestrator: 最終補足文
   Orchestrator->>Guardrails: 出力安全性チェック（任意）
   Guardrails-->>Orchestrator: チェック結果
@@ -360,7 +366,7 @@ sequenceDiagram
 - AWS ハッカソンでの AgentCore 活用アピール
 - Strands Agents は Python ベースで実装しやすい
 - MVP では A2A を使わず、AgentCore Runtime + Strands Orchestrator に集中して複雑性を抑える
-- AgentCore の設定が詰まった場合も、4 Unit の契約を維持すれば Bedrock 直接呼び出しへ一時的に退避できる
+- AgentCore の設定が詰まった場合も、Agent 入出力契約を維持すれば Bedrock 直接呼び出しへ一時的に退避できる
 
 ### A2A を MVP で使わない理由（設計判断）
 

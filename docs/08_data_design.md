@@ -37,11 +37,11 @@
 | `status` | String | ✅ | ジョブの状態（下記参照） |
 | `request_payload` | Map | - | Slack Interactivity の payload |
 | `reader_profile` | Map | - | 読み手のリテラシー設定 |
-| `omission_result` | Map | - | Unit 1 の出力 |
-| `retrieved_context` | Map | - | Unit 2 の出力 |
-| `draft_message` | String | - | Unit 3 の出力（補足文ドラフト） |
-| `final_message` | String | - | Unit 4 の出力（最終補足文） |
-| `review_result` | Map | - | Unit 4 のレビュー結果 |
+| `omission_result` | Map | - | 省略抽出 Agent の出力 |
+| `retrieved_context` | Map | - | 文脈取得 Agent の出力 |
+| `draft_message` | String | - | 補足文生成 Agent の出力（補足文ドラフト） |
+| `final_message` | String | - | リテラシーレビュー Agent の出力（最終補足文） |
+| `review_result` | Map | - | リテラシーレビュー Agent のレビュー結果 |
 | `error_message` | String | - | エラーメッセージ |
 | `created_at` | String | ✅ | ISO 8601 形式 |
 | `updated_at` | String | ✅ | ISO 8601 形式 |
