@@ -244,11 +244,6 @@ explain-bot-{account-id}-{region}/
 ├── logs/                         # 実行ログ
 │   └── {year}/{month}/{day}/
 │       └── {job_id}.json
-└── demo/                         # デモ用資料
-    ├── slack_messages.md
-    ├── kb_docs/
-    ├── github_issues.md
-    └── drive_docs/
 ```
 
 ### S3 バケットポリシー

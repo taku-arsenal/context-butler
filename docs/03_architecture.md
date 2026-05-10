@@ -50,8 +50,8 @@ flowchart LR
     end
 
     subgraph Knowledge["Knowledge & MCP Tools"]
-      KB[Amazon Bedrock Knowledge Bases\nデモ用社内ナレッジRAG]
-      S3KB[Amazon S3\nKBソース\nチャンネル要約\nデモ資料]
+      KB[Amazon Bedrock Knowledge Bases\n社内ナレッジRAG]
+      S3KB[Amazon S3\nKBソース\nチャンネル要約]
       MCPGW[Amazon Bedrock AgentCore Gateway\nMCP tools endpoint]
     end
 
@@ -242,7 +242,6 @@ Orchestrator の制御フロー:
 | `kb-source/` | Knowledge Bases のソースドキュメント |
 | `channel-summaries/` | チャンネル履歴要約 |
 | `logs/` | 実行ログ |
-| `demo/` | デモ用資料 |
 
 ### 3.12 Bedrock Guardrails（任意）
 
@@ -294,7 +293,7 @@ sequenceDiagram
   Orchestrator->>Bedrock: Unit 1 省略抽出
   Bedrock-->>Orchestrator: 省略点 JSON
   Orchestrator->>Bedrock: Unit 2 文脈取得方針判断
-  Orchestrator->>KB: デモ用KB検索
+  Orchestrator->>KB: 社内ナレッジKB検索
   KB-->>Orchestrator: KB検索結果
   Orchestrator->>MCP: 必要時のみ外部文脈取得
   MCP->>GitHub: Issue / PR / README 検索
@@ -404,9 +403,9 @@ A2A を使うと以下のコストが増えます：
 | Lambda | Ack・Worker | Must | Must |
 | SQS FIFO | 非同期化・重複排除 | Must | Must |
 | DynamoDB | job・ユーザー・チャンネル管理 | Must | Must |
-| S3 | KB ソース・ログ・デモ資料 | Must | Must |
+| S3 | KB ソース・ログ | Must | Must |
 | Bedrock (LLM) | AI 推論 | Must | Must |
-| Bedrock Knowledge Bases | デモ用社内ナレッジ RAG | Must | Must |
+| Bedrock Knowledge Bases | 社内ナレッジ RAG | Must | Must |
 | Bedrock AgentCore Runtime | Agent ホスティング | Must（第一候補） | Must |
 | Bedrock Guardrails | 出力フィルタリング | Should | Must |
 | CloudWatch | ログ・監視 | Must | Must |
