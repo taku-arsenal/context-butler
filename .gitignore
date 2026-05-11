@@ -89,6 +89,9 @@ AWS-Summit-Japan-2026-Hackathon*.pdf
 AWS_Summit_Japan_2026_Hackathon_参加規約.pdf
 AI-Driven Development Lifecycle.pdf
 
+# Kiro internal config (not for public GitHub)
+.kiro/specs/**/.config.kiro
+
 # Internal/demo and local generated workspaces
 demo/
 generated-diagrams/

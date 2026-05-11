@@ -412,11 +412,11 @@ A2A を使うと以下のコストが増えます：
 | S3 | KB ソース・ログ | Must | Must |
 | Bedrock (LLM) | AI 推論 | Must | Must |
 | Bedrock Knowledge Bases | 社内ナレッジ RAG | Must | Must |
-| Bedrock AgentCore Runtime | Agent ホスティング | MVP Target（第一候補） | Must |
-| Bedrock Guardrails | 出力フィルタリング | Should | Must |
+| Bedrock AgentCore Runtime | Agent ホスティング | MVP Target（第一候補）、詰まった場合は Bedrock 直接呼び出しへフォールバック | MVP Target |
+| Bedrock Guardrails | 出力フィルタリング | Should | Should |
 | CloudWatch | ログ・監視 | Must | Must |
 | IAM | 権限管理 | Must | Must |
-| CDK | IaC | Should（予選までに整備） | Must |
+| CDK | IaC | Should（予選までに整備） | Should |
 
 ---
 
